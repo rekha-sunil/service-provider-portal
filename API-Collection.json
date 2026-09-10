@@ -1,0 +1,109 @@
+{
+  "name": "Service Provider Portal API",
+  "baseUrl": "http://localhost:5000/api",
+  "endpoints": [
+    {
+      "name": "Register Provider",
+      "method": "POST",
+      "url": "/auth/register",
+      "body": {
+        "name": "Test Provider",
+        "email": "test@example.com",
+        "password": "test123"
+      }
+    },
+    {
+      "name": "Login",
+      "method": "POST",
+      "url": "/auth/login",
+      "body": {
+        "email": "test@example.com",
+        "password": "test123"
+      }
+    },
+    {
+      "name": "Get Provider Profile",
+      "method": "GET",
+      "url": "/providers/profile",
+      "authorization": "Bearer <provider-token>"
+    },
+    {
+      "name": "Update Provider Profile",
+      "method": "PUT",
+      "url": "/providers/profile",
+      "authorization": "Bearer <provider-token>",
+      "body": {
+        "phone": "9876543210",
+        "categories": [
+          "Plumbing"
+        ],
+        "skills": [
+          "Pipe Repair",
+          "Installation"
+        ],
+        "experience": 3,
+        "city": "Hyderabad",
+        "state": "Telangana",
+        "address": "Hyderabad"
+      }
+    },
+    {
+      "name": "Submit Application",
+      "method": "POST",
+      "url": "/providers/submit",
+      "authorization": "Bearer <provider-token>"
+    },
+    {
+      "name": "Upload Profile Photo",
+      "method": "POST",
+      "url": "/providers/upload/profile-photo",
+      "authorization": "Bearer <provider-token>",
+      "contentType": "multipart/form-data",
+      "field": "profilePhoto"
+    },
+    {
+      "name": "Upload Verification Document",
+      "method": "POST",
+      "url": "/providers/upload/document",
+      "authorization": "Bearer <provider-token>",
+      "contentType": "multipart/form-data",
+      "field": "document"
+    },
+    {
+      "name": "Admin Login",
+      "method": "POST",
+      "url": "/auth/login",
+      "body": {
+        "email": "admin@example.com",
+        "password": "admin123"
+      }
+    },
+    {
+      "name": "Admin Dashboard Stats",
+      "method": "GET",
+      "url": "/admin/stats",
+      "authorization": "Bearer <admin-token>"
+    },
+    {
+      "name": "Get All Providers",
+      "method": "GET",
+      "url": "/admin/providers",
+      "authorization": "Bearer <admin-token>"
+    },
+    {
+      "name": "Approve Provider",
+      "method": "PUT",
+      "url": "/admin/providers/<provider-id>/approve",
+      "authorization": "Bearer <admin-token>"
+    },
+    {
+      "name": "Reject Provider",
+      "method": "PUT",
+      "url": "/admin/providers/<provider-id>/reject",
+      "authorization": "Bearer <admin-token>",
+      "body": {
+        "remark": "Documents need to be verified"
+      }
+    }
+  ]
+}
