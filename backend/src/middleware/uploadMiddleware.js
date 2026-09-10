@@ -2,8 +2,13 @@ const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
 
-const uploadPath = path.join(__dirname, "../../uploads");
+// Use Vercel's temporary writable directory in production.
+// Use the normal uploads folder when running locally.
+const uploadPath = process.env.VERCEL
+  ? "/tmp/service-provider-uploads"
+  : path.join(__dirname, "../../uploads");
 
+// Create upload directory if it doesn't exist
 if (!fs.existsSync(uploadPath)) {
   fs.mkdirSync(uploadPath, { recursive: true });
 }
@@ -56,7 +61,7 @@ const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024,
+    fileSize: 5 * 1024 * 1024, // 5MB
   },
 });
 
