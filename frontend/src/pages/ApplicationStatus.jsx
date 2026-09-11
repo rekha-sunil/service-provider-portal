@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../services/api";
 
 function ApplicationStatus() {
   const [provider, setProvider] = useState(null);
@@ -10,14 +10,7 @@ function ApplicationStatus() {
 
   const loadProfile = async () => {
     try {
-      const response = await axios.get(
-        "http://localhost:5000/api/providers/profile",
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await api.get("/providers/profile");
 
       const data = response.data.provider || response.data;
 
@@ -37,6 +30,9 @@ function ApplicationStatus() {
   useEffect(() => {
     if (token) {
       loadProfile();
+    } else {
+      setLoading(false);
+      setMessage("Please login to view application status.");
     }
   }, [token]);
 
@@ -73,10 +69,13 @@ function ApplicationStatus() {
   const statusDescription = {
     draft:
       "Please complete your profile and submit your application.",
+
     pending:
       "Your application has been submitted and is waiting for admin review.",
+
     approved:
       "Congratulations! Your application has been approved.",
+
     rejected:
       "Your application was rejected. Please review the admin remark and update your profile before resubmitting.",
   };
@@ -84,9 +83,9 @@ function ApplicationStatus() {
   return (
     <div className="page-container">
       <div className="form-card">
-
         <h1>Application Status</h1>
 
+        {/* STATUS */}
         <div
           style={{
             marginTop: "20px",
@@ -96,22 +95,20 @@ function ApplicationStatus() {
           }}
         >
           <h2>
-            Status: {statusText[status]}
+            Status: {statusText[status] || "Unknown"}
           </h2>
 
           <p>
-            {statusDescription[status]}
+            {statusDescription[status] ||
+              "Your application status is currently unavailable."}
           </p>
         </div>
 
         {/* STATUS STEPS */}
-
         <div style={{ marginTop: "30px" }}>
-
           <h3>Application Progress</h3>
 
           <div style={{ marginTop: "15px" }}>
-
             <p>
               {status === "draft" ||
               status === "pending" ||
@@ -148,12 +145,10 @@ function ApplicationStatus() {
                 ? "❌ Rejected"
                 : "⭕ Final Decision"}
             </p>
-
           </div>
         </div>
 
         {/* REJECTION REMARK */}
-
         {status === "rejected" &&
           provider.rejectionRemark && (
             <div
@@ -166,9 +161,7 @@ function ApplicationStatus() {
             >
               <h3>Admin Remark</h3>
 
-              <p>
-                {provider.rejectionRemark}
-              </p>
+              <p>{provider.rejectionRemark}</p>
 
               <p>
                 Please update your profile and
@@ -178,9 +171,7 @@ function ApplicationStatus() {
           )}
 
         {/* PROVIDER INFORMATION */}
-
         <div style={{ marginTop: "30px" }}>
-
           <h3>Application Details</h3>
 
           <p>
@@ -218,9 +209,7 @@ function ApplicationStatus() {
               ? provider.skills.join(", ")
               : "Not provided"}
           </p>
-
         </div>
-
       </div>
     </div>
   );
