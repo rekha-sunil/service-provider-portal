@@ -1,5 +1,4 @@
 const express = require("express");
-const cors = require("cors");
 
 const authRoutes = require("./routes/authRoutes");
 const providerRoutes = require("./routes/providerRoutes");
@@ -7,37 +6,67 @@ const adminRoutes = require("./routes/adminRoutes");
 
 const app = express();
 
-// CORS configuration for production frontend
-app.use(
-  cors({
-    origin: "https://service-provider-portal-woad.vercel.app",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+// ===============================
+// CORS Configuration
+// ===============================
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
 
-// Handle CORS preflight requests
-app.options(/.*/, cors());
+  // Allow production frontend and local development
+  if (
+    origin === "https://service-provider-portal-woad.vercel.app" ||
+    origin === "http://localhost:5173"
+  ) {
+    res.header("Access-Control-Allow-Origin", origin);
+    res.header("Vary", "Origin");
+  }
 
-// Parse JSON request bodies
+  res.header(
+    "Access-Control-Allow-Methods",
+    "GET,POST,PUT,DELETE,OPTIONS"
+  );
+
+  res.header(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+
+  // Handle browser preflight requests
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
+
+// ===============================
+// Body Parsers
+// ===============================
 app.use(express.json());
-
-// Parse URL-encoded request bodies
 app.use(express.urlencoded({ extended: true }));
 
-// Serve uploaded files
+// ===============================
+// Uploaded Files
+// ===============================
 app.use("/uploads", express.static("uploads"));
 
-// Health check
+// ===============================
+// Health Check
+// ===============================
 app.get("/", (req, res) => {
   res.json({
     message: "Service Provider Onboarding API is running",
   });
 });
 
-// API routes
+// ===============================
+// API Routes
+// ===============================
 app.use("/api/auth", authRoutes);
 app.use("/api/providers", providerRoutes);
 app.use("/api/admin", adminRoutes);
 
+// ===============================
+// Export App
+// ===============================
 module.exports = app;
