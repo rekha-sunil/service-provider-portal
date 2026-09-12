@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+
+import api from "../services/api";
 
 function ProviderProfile() {
   const [formData, setFormData] = useState({
@@ -25,20 +26,20 @@ function ProviderProfile() {
 
   const token = localStorage.getItem("token");
 
+  // Get backend URL for uploaded files
+  const API_BASE_URL = (
+    import.meta.env.VITE_API_URL ||
+    "http://localhost:5000/api"
+  ).replace(/\/api\/?$/, "");
+
   // Load existing profile
   useEffect(() => {
     const loadProfile = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:5000/api/providers/profile",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+        const response = await api.get("/providers/profile");
 
-        const provider = response.data.provider || response.data;
+        const provider =
+          response.data.provider || response.data;
 
         if (!provider) {
           return;
@@ -69,6 +70,11 @@ function ProviderProfile() {
         setSavedDocuments(provider.documents || []);
       } catch (error) {
         console.error("PROFILE LOAD ERROR:", error);
+
+        setMessage(
+          error.response?.data?.message ||
+            "Unable to load profile"
+        );
       }
     };
 
@@ -111,6 +117,7 @@ function ProviderProfile() {
     const state = formData.state.trim();
     const address = formData.address.trim();
 
+    // Validation
     if (!/^\d{10}$/.test(phone)) {
       setMessage(
         "Phone number must contain exactly 10 digits"
@@ -155,8 +162,8 @@ function ProviderProfile() {
     setLoading(true);
 
     try {
-      const response = await axios.put(
-        "http://localhost:5000/api/providers/profile",
+      const response = await api.put(
+        "/providers/profile",
         {
           phone,
           categories,
@@ -165,16 +172,15 @@ function ProviderProfile() {
           city,
           state,
           address,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
         }
       );
 
-      setMessage(response.data.message);
+      setMessage(
+        response.data.message || "Profile updated successfully"
+      );
     } catch (error) {
+      console.error("PROFILE UPDATE ERROR:", error);
+
       setMessage(
         error.response?.data?.message ||
           "Profile update failed"
@@ -199,35 +205,22 @@ function ProviderProfile() {
 
       data.append("profilePhoto", profilePhoto);
 
-      const response = await fetch(
-        "http://localhost:5000/api/providers/upload/profile-photo",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: data,
-        }
+      const response = await api.post(
+        "/providers/upload/profile-photo",
+        data
       );
 
-      const result = await response.json();
+      const result = response.data;
 
-      if (!response.ok) {
-        throw new Error(
-          result.message ||
-            "Profile photo upload failed"
-        );
-      }
-
-      setMessage(result.message);
+      setMessage(
+        result.message || "Profile photo uploaded successfully"
+      );
 
       const uploadedProvider =
         result.provider || result;
 
       if (uploadedProvider.profilePhoto) {
-        setSavedPhoto(
-          uploadedProvider.profilePhoto
-        );
+        setSavedPhoto(uploadedProvider.profilePhoto);
       }
 
       setProfilePhoto(null);
@@ -238,7 +231,8 @@ function ProviderProfile() {
       );
 
       setMessage(
-        error.message ||
+        error.response?.data?.message ||
+          error.message ||
           "Profile photo upload failed"
       );
     } finally {
@@ -263,27 +257,17 @@ function ProviderProfile() {
 
       data.append("document", document);
 
-      const response = await fetch(
-        "http://localhost:5000/api/providers/upload/document",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: data,
-        }
+      const response = await api.post(
+        "/providers/upload/document",
+        data
       );
 
-      const result = await response.json();
+      const result = response.data;
 
-      if (!response.ok) {
-        throw new Error(
-          result.message ||
-            "Document upload failed"
-        );
-      }
-
-      setMessage(result.message);
+      setMessage(
+        result.message ||
+          "Document uploaded successfully"
+      );
 
       const uploadedProvider =
         result.provider || result;
@@ -302,7 +286,8 @@ function ProviderProfile() {
       );
 
       setMessage(
-        error.message ||
+        error.response?.data?.message ||
+          error.message ||
           "Document upload failed"
       );
     } finally {
@@ -437,7 +422,7 @@ function ProviderProfile() {
             </p>
 
             <img
-              src={`http://localhost:5000${savedPhoto}`}
+              src={`${API_BASE_URL}${savedPhoto}`}
               alt="Provider profile"
               style={{
                 width: "150px",
@@ -547,7 +532,7 @@ function ProviderProfile() {
                   </p>
 
                   <a
-                    href={`http://localhost:5000${doc.url}`}
+                    href={`${API_BASE_URL}${doc.url}`}
                     target="_blank"
                     rel="noreferrer"
                   >
