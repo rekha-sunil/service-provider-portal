@@ -25,35 +25,28 @@ function ProviderProfile() {
 
   const token = localStorage.getItem("token");
 
-  // Backend URL for old/local uploaded files
   const API_BASE_URL = (
     import.meta.env.VITE_API_URL ||
     "http://localhost:5000/api"
   ).replace(/\/api\/?$/, "");
 
-  // Handle both Cloudinary URLs and old/local URLs
   const getFileUrl = (url) => {
     if (!url) return "";
 
-    // Cloudinary or any full URL
     if (url.startsWith("http")) {
       return url;
     }
 
-    // Old/local uploads
     return `${API_BASE_URL}${url}`;
   };
 
-  // =====================================================
   // LOAD EXISTING PROFILE
-  // =====================================================
   useEffect(() => {
     const loadProfile = async () => {
       try {
         const response = await api.get("/providers/profile");
 
-        const provider =
-          response.data.provider || response.data;
+        const provider = response.data.provider || response.data;
 
         if (!provider) {
           return;
@@ -97,9 +90,7 @@ function ProviderProfile() {
     }
   }, [token]);
 
-  // =====================================================
   // HANDLE FORM CHANGES
-  // =====================================================
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -109,9 +100,7 @@ function ProviderProfile() {
     setMessage("");
   };
 
-  // =====================================================
   // SAVE PROFILE
-  // =====================================================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -135,7 +124,7 @@ function ProviderProfile() {
     const state = formData.state.trim();
     const address = formData.address.trim();
 
-    // Validation
+    // VALIDATION
     if (!/^\d{10}$/.test(phone)) {
       setMessage(
         "Phone number must contain exactly 10 digits"
@@ -144,16 +133,12 @@ function ProviderProfile() {
     }
 
     if (categories.length === 0) {
-      setMessage(
-        "Please enter at least one category"
-      );
+      setMessage("Please enter at least one category");
       return;
     }
 
     if (skills.length === 0) {
-      setMessage(
-        "Please enter at least one skill"
-      );
+      setMessage("Please enter at least one skill");
       return;
     }
 
@@ -162,9 +147,7 @@ function ProviderProfile() {
       Number.isNaN(experience) ||
       experience < 0
     ) {
-      setMessage(
-        "Please enter valid experience"
-      );
+      setMessage("Please enter valid experience");
       return;
     }
 
@@ -204,10 +187,7 @@ function ProviderProfile() {
           "Profile updated successfully"
       );
     } catch (error) {
-      console.error(
-        "PROFILE UPDATE ERROR:",
-        error
-      );
+      console.error("PROFILE UPDATE ERROR:", error);
 
       setMessage(
         error.response?.data?.message ||
@@ -218,14 +198,10 @@ function ProviderProfile() {
     }
   };
 
-  // =====================================================
   // UPLOAD PROFILE PHOTO
-  // =====================================================
   const handlePhotoUpload = async () => {
     if (!profilePhoto) {
-      setMessage(
-        "Please select a profile photo"
-      );
+      setMessage("Please select a profile photo");
       return;
     }
 
@@ -235,10 +211,7 @@ function ProviderProfile() {
     try {
       const data = new FormData();
 
-      data.append(
-        "profilePhoto",
-        profilePhoto
-      );
+      data.append("profilePhoto", profilePhoto);
 
       const response = await api.post(
         "/providers/upload/profile-photo",
@@ -252,12 +225,10 @@ function ProviderProfile() {
           "Profile photo uploaded successfully"
       );
 
-      // Controller returns profilePhoto directly
       if (result.profilePhoto) {
         setSavedPhoto(result.profilePhoto);
       }
 
-      // Also support response.provider if returned
       if (result.provider?.profilePhoto) {
         setSavedPhoto(
           result.provider.profilePhoto
@@ -266,10 +237,7 @@ function ProviderProfile() {
 
       setProfilePhoto(null);
     } catch (error) {
-      console.error(
-        "PHOTO UPLOAD ERROR:",
-        error
-      );
+      console.error("PHOTO UPLOAD ERROR:", error);
 
       setMessage(
         error.response?.data?.message ||
@@ -281,9 +249,7 @@ function ProviderProfile() {
     }
   };
 
-  // =====================================================
   // UPLOAD VERIFICATION DOCUMENT
-  // =====================================================
   const handleDocumentUpload = async () => {
     if (!document) {
       setMessage(
@@ -312,7 +278,6 @@ function ProviderProfile() {
           "Document uploaded successfully"
       );
 
-      // Controller returns one document
       if (result.document) {
         setSavedDocuments((prev) => [
           ...prev,
@@ -320,7 +285,6 @@ function ProviderProfile() {
         ]);
       }
 
-      // Also support response.provider if returned
       if (result.provider?.documents) {
         setSavedDocuments(
           result.provider.documents
@@ -344,9 +308,6 @@ function ProviderProfile() {
     }
   };
 
-  // =====================================================
-  // UI
-  // =====================================================
   return (
     <div className="page-container">
       <div className="form-card">
@@ -381,7 +342,7 @@ function ProviderProfile() {
             name="categories"
             value={formData.categories}
             onChange={handleChange}
-            placeholder="Plumbing, Electrical"
+            placeholder="Web Development, Mobile App Development"
             required
           />
 
@@ -396,7 +357,7 @@ function ProviderProfile() {
             name="skills"
             value={formData.skills}
             onChange={handleChange}
-            placeholder="Pipe Repair, Wiring"
+            placeholder="React.js, JavaScript, Node.js"
             required
           />
 
@@ -461,7 +422,6 @@ function ProviderProfile() {
         <hr />
 
         {/* PROFILE PHOTO */}
-
         <h2>Profile Photo</h2>
 
         {savedPhoto && (
@@ -516,10 +476,7 @@ function ProviderProfile() {
         <hr />
 
         {/* VERIFICATION DOCUMENT */}
-
-        <h2>
-          Verification Document
-        </h2>
+        <h2>Verification Document</h2>
 
         <input
           type="file"
@@ -549,7 +506,6 @@ function ProviderProfile() {
         </button>
 
         {/* SAVED DOCUMENTS */}
-
         {savedDocuments.length > 0 && (
           <div
             style={{
@@ -563,16 +519,12 @@ function ProviderProfile() {
             {savedDocuments.map(
               (doc, index) => (
                 <div
-                  key={
-                    doc._id || index
-                  }
+                  key={doc._id || index}
                   style={{
                     padding: "10px",
                     marginBottom: "10px",
-                    border:
-                      "1px solid #ddd",
-                    borderRadius:
-                      "8px",
+                    border: "1px solid #ddd",
+                    borderRadius: "8px",
                   }}
                 >
                   <p>

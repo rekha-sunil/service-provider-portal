@@ -48,7 +48,6 @@ function ProviderDashboard() {
 
       alert(response.data.message);
 
-      // Reload profile after submission
       window.location.reload();
     } catch (error) {
       alert(
@@ -234,6 +233,7 @@ function ProviderDashboard() {
             Your application has been approved.
           </p>
         )}
+
       </div>
     </div>
   );
