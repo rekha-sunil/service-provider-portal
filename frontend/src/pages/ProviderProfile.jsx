@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-
 import api from "../services/api";
 
 function ProviderProfile() {
@@ -26,13 +25,28 @@ function ProviderProfile() {
 
   const token = localStorage.getItem("token");
 
-  // Get backend URL for uploaded files
+  // Backend URL for old/local uploaded files
   const API_BASE_URL = (
     import.meta.env.VITE_API_URL ||
     "http://localhost:5000/api"
   ).replace(/\/api\/?$/, "");
 
-  // Load existing profile
+  // Handle both Cloudinary URLs and old/local URLs
+  const getFileUrl = (url) => {
+    if (!url) return "";
+
+    // Cloudinary or any full URL
+    if (url.startsWith("http")) {
+      return url;
+    }
+
+    // Old/local uploads
+    return `${API_BASE_URL}${url}`;
+  };
+
+  // =====================================================
+  // LOAD EXISTING PROFILE
+  // =====================================================
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -83,7 +97,9 @@ function ProviderProfile() {
     }
   }, [token]);
 
-  // Handle form changes
+  // =====================================================
+  // HANDLE FORM CHANGES
+  // =====================================================
   const handleChange = (e) => {
     setFormData({
       ...formData,
@@ -93,7 +109,9 @@ function ProviderProfile() {
     setMessage("");
   };
 
-  // Save profile
+  // =====================================================
+  // SAVE PROFILE
+  // =====================================================
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -126,12 +144,16 @@ function ProviderProfile() {
     }
 
     if (categories.length === 0) {
-      setMessage("Please enter at least one category");
+      setMessage(
+        "Please enter at least one category"
+      );
       return;
     }
 
     if (skills.length === 0) {
-      setMessage("Please enter at least one skill");
+      setMessage(
+        "Please enter at least one skill"
+      );
       return;
     }
 
@@ -140,7 +162,9 @@ function ProviderProfile() {
       Number.isNaN(experience) ||
       experience < 0
     ) {
-      setMessage("Please enter valid experience");
+      setMessage(
+        "Please enter valid experience"
+      );
       return;
     }
 
@@ -176,10 +200,14 @@ function ProviderProfile() {
       );
 
       setMessage(
-        response.data.message || "Profile updated successfully"
+        response.data.message ||
+          "Profile updated successfully"
       );
     } catch (error) {
-      console.error("PROFILE UPDATE ERROR:", error);
+      console.error(
+        "PROFILE UPDATE ERROR:",
+        error
+      );
 
       setMessage(
         error.response?.data?.message ||
@@ -190,10 +218,14 @@ function ProviderProfile() {
     }
   };
 
-  // Upload profile photo
+  // =====================================================
+  // UPLOAD PROFILE PHOTO
+  // =====================================================
   const handlePhotoUpload = async () => {
     if (!profilePhoto) {
-      setMessage("Please select a profile photo");
+      setMessage(
+        "Please select a profile photo"
+      );
       return;
     }
 
@@ -203,7 +235,10 @@ function ProviderProfile() {
     try {
       const data = new FormData();
 
-      data.append("profilePhoto", profilePhoto);
+      data.append(
+        "profilePhoto",
+        profilePhoto
+      );
 
       const response = await api.post(
         "/providers/upload/profile-photo",
@@ -213,14 +248,20 @@ function ProviderProfile() {
       const result = response.data;
 
       setMessage(
-        result.message || "Profile photo uploaded successfully"
+        result.message ||
+          "Profile photo uploaded successfully"
       );
 
-      const uploadedProvider =
-        result.provider || result;
+      // Controller returns profilePhoto directly
+      if (result.profilePhoto) {
+        setSavedPhoto(result.profilePhoto);
+      }
 
-      if (uploadedProvider.profilePhoto) {
-        setSavedPhoto(uploadedProvider.profilePhoto);
+      // Also support response.provider if returned
+      if (result.provider?.profilePhoto) {
+        setSavedPhoto(
+          result.provider.profilePhoto
+        );
       }
 
       setProfilePhoto(null);
@@ -240,7 +281,9 @@ function ProviderProfile() {
     }
   };
 
-  // Upload verification document
+  // =====================================================
+  // UPLOAD VERIFICATION DOCUMENT
+  // =====================================================
   const handleDocumentUpload = async () => {
     if (!document) {
       setMessage(
@@ -269,12 +312,18 @@ function ProviderProfile() {
           "Document uploaded successfully"
       );
 
-      const uploadedProvider =
-        result.provider || result;
+      // Controller returns one document
+      if (result.document) {
+        setSavedDocuments((prev) => [
+          ...prev,
+          result.document,
+        ]);
+      }
 
-      if (uploadedProvider.documents) {
+      // Also support response.provider if returned
+      if (result.provider?.documents) {
         setSavedDocuments(
-          uploadedProvider.documents
+          result.provider.documents
         );
       }
 
@@ -295,6 +344,9 @@ function ProviderProfile() {
     }
   };
 
+  // =====================================================
+  // UI
+  // =====================================================
   return (
     <div className="page-container">
       <div className="form-card">
@@ -308,7 +360,6 @@ function ProviderProfile() {
         )}
 
         {/* PROFILE FORM */}
-
         <form onSubmit={handleSubmit}>
 
           <label>Phone</label>
@@ -422,7 +473,7 @@ function ProviderProfile() {
             </p>
 
             <img
-              src={`${API_BASE_URL}${savedPhoto}`}
+              src={getFileUrl(savedPhoto)}
               alt="Provider profile"
               style={{
                 width: "150px",
@@ -532,7 +583,7 @@ function ProviderProfile() {
                   </p>
 
                   <a
-                    href={`${API_BASE_URL}${doc.url}`}
+                    href={getFileUrl(doc.url)}
                     target="_blank"
                     rel="noreferrer"
                   >

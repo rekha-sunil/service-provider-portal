@@ -90,7 +90,6 @@ const updateProfile = async (req, res) => {
   }
 };
 
-
 // Get Provider Profile
 const getProfile = async (req, res) => {
   try {
@@ -114,7 +113,6 @@ const getProfile = async (req, res) => {
     });
   }
 };
-
 
 // Submit Provider Application
 const submitApplication = async (req, res) => {
@@ -227,7 +225,6 @@ const submitApplication = async (req, res) => {
   }
 };
 
-
 // Upload Profile Photo
 const uploadProfilePhoto = async (req, res) => {
   try {
@@ -235,6 +232,13 @@ const uploadProfilePhoto = async (req, res) => {
     if (!req.file) {
       return res.status(400).json({
         message: "Please upload a profile photo",
+      });
+    }
+
+    // Check Cloudinary upload
+    if (!req.file.cloudinaryUrl) {
+      return res.status(500).json({
+        message: "Profile photo upload to Cloudinary failed",
       });
     }
 
@@ -259,9 +263,8 @@ const uploadProfilePhoto = async (req, res) => {
       });
     }
 
-    // Save uploaded photo path
-    provider.profilePhoto =
-      `/uploads/${req.file.filename}`;
+    // Save Cloudinary URL
+    provider.profilePhoto = req.file.cloudinaryUrl;
 
     await provider.save();
 
@@ -271,12 +274,13 @@ const uploadProfilePhoto = async (req, res) => {
       profilePhoto: provider.profilePhoto,
     });
   } catch (error) {
+    console.error("Profile photo error:", error);
+
     res.status(500).json({
       message: error.message,
     });
   }
 };
-
 
 // Upload Verification Document
 const uploadDocument = async (req, res) => {
@@ -288,6 +292,13 @@ const uploadDocument = async (req, res) => {
       });
     }
 
+    // Check Cloudinary upload
+    if (!req.file.cloudinaryUrl) {
+      return res.status(500).json({
+        message: "Document upload to Cloudinary failed",
+      });
+    }
+
     const provider = await Provider.findOne({
       user: req.user._id,
     });
@@ -309,10 +320,10 @@ const uploadDocument = async (req, res) => {
       });
     }
 
-    // Add document
+    // Add Cloudinary document URL
     provider.documents.push({
       name: req.file.originalname,
-      url: `/uploads/${req.file.filename}`,
+      url: req.file.cloudinaryUrl,
     });
 
     await provider.save();
@@ -321,16 +332,17 @@ const uploadDocument = async (req, res) => {
       message: "Document uploaded successfully",
       document: {
         name: req.file.originalname,
-        url: `/uploads/${req.file.filename}`,
+        url: req.file.cloudinaryUrl,
       },
     });
   } catch (error) {
+    console.error("Document upload error:", error);
+
     res.status(500).json({
       message: error.message,
     });
   }
 };
-
 
 // Export Controllers
 module.exports = {

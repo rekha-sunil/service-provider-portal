@@ -1,39 +1,9 @@
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+const cloudinary = require("../config/cloudinary");
+const streamifier = require("streamifier");
 
-// Use Vercel's temporary writable directory in production.
-// Use the normal uploads folder when running locally.
-const uploadPath = process.env.VERCEL
-  ? "/tmp/service-provider-uploads"
-  : path.join(__dirname, "../../uploads");
-
-// Create upload directory if it doesn't exist
-if (!fs.existsSync(uploadPath)) {
-  fs.mkdirSync(uploadPath, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    console.log("UPLOAD DESTINATION:", uploadPath);
-    cb(null, uploadPath);
-  },
-
-  filename: (req, file, cb) => {
-    const uniqueName =
-      Date.now() + "-" + Math.round(Math.random() * 1e9);
-
-    const filename =
-      file.fieldname +
-      "-" +
-      uniqueName +
-      path.extname(file.originalname);
-
-    console.log("SAVING FILE AS:", filename);
-
-    cb(null, filename);
-  },
-});
+// Store uploaded files temporarily in memory
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
   console.log("FILE RECEIVED:", file.originalname);
@@ -65,4 +35,46 @@ const upload = multer({
   },
 });
 
-module.exports = upload;
+// Upload file to Cloudinary
+const uploadToCloudinary = (req, res, next) => {
+  if (!req.file) {
+    return next();
+  }
+
+  const resourceType =
+    req.file.mimetype === "application/pdf"
+      ? "raw"
+      : "image";
+
+  const uploadStream = cloudinary.uploader.upload_stream(
+    {
+      resource_type: resourceType,
+      folder: "service-provider-portal",
+    },
+    (error, result) => {
+      if (error) {
+        console.error("Cloudinary upload error:", error);
+
+        return res.status(500).json({
+          message: "File upload failed",
+          error: error.message,
+        });
+      }
+
+      // Save Cloudinary information in req.file
+      req.file.cloudinaryUrl = result.secure_url;
+      req.file.cloudinaryPublicId = result.public_id;
+
+      next();
+    }
+  );
+
+  streamifier
+    .createReadStream(req.file.buffer)
+    .pipe(uploadStream);
+};
+
+module.exports = {
+  upload,
+  uploadToCloudinary,
+};

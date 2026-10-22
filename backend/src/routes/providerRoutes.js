@@ -15,8 +15,14 @@ const {
   authorize,
 } = require("../middleware/authMiddleware");
 
-const upload = require("../middleware/uploadMiddleware");
+const {
+  upload,
+  uploadToCloudinary,
+} = require("../middleware/uploadMiddleware");
 
+// =====================================================
+// GET PROVIDER PROFILE
+// =====================================================
 router.get(
   "/profile",
   protect,
@@ -24,6 +30,9 @@ router.get(
   getProfile
 );
 
+// =====================================================
+// UPDATE PROVIDER PROFILE
+// =====================================================
 router.put(
   "/profile",
   protect,
@@ -31,6 +40,9 @@ router.put(
   updateProfile
 );
 
+// =====================================================
+// SUBMIT PROVIDER APPLICATION
+// =====================================================
 router.post(
   "/submit",
   protect,
@@ -38,45 +50,77 @@ router.post(
   submitApplication
 );
 
-// Profile photo upload
+// =====================================================
+// PROFILE PHOTO UPLOAD
+// =====================================================
 router.post(
   "/upload/profile-photo",
   protect,
   authorize("provider"),
+
+  // Debug middleware
   (req, res, next) => {
     console.log("================================");
     console.log("PROFILE PHOTO ROUTE REACHED");
     console.log("================================");
     next();
   },
+
+  // Receive file from frontend
   upload.single("profilePhoto"),
+
+  // Upload file to Cloudinary
+  uploadToCloudinary,
+
+  // Save Cloudinary URL in MongoDB
   uploadProfilePhoto
 );
 
-// Verification document upload
+// =====================================================
+// VERIFICATION DOCUMENT UPLOAD
+// =====================================================
 router.post(
   "/upload/document",
   protect,
   authorize("provider"),
+
+  // Debug middleware
   (req, res, next) => {
     console.log("================================");
     console.log("DOCUMENT ROUTE REACHED");
     console.log("================================");
     next();
   },
+
+  // Receive file from frontend
   upload.single("document"),
+
+  // Upload file to Cloudinary
+  uploadToCloudinary,
+
+  // Save Cloudinary URL in MongoDB
   uploadDocument
 );
 
-// Upload error handler
-router.use((error, req, res, next) => {
-  console.error("================================");
-  console.error("UPLOAD ERROR:", error.message);
-  console.error("================================");
+// =====================================================
+// UPLOAD ERROR HANDLER
+// =====================================================
+router.use(
+  (error, req, res, next) => {
+    console.error("================================");
+    console.error(
+      "UPLOAD ERROR:",
+      error.message
+    );
+    console.error("================================");
 
-  return res.status(400).json({
-    message: error.message,
-  });
-});
+    return res.status(400).json({
+      message: error.message,
+    });
+  }
+);
 
+// =====================================================
+// EXPORT ROUTER
+// =====================================================
 module.exports = router;
