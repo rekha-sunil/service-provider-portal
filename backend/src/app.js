@@ -1,4 +1,5 @@
 const express = require("express");
+const path = require("path");
 
 const authRoutes = require("./routes/authRoutes");
 const providerRoutes = require("./routes/providerRoutes");
@@ -15,7 +16,10 @@ app.use((req, res, next) => {
   // Allow production frontend and local development
   if (
     origin === "https://service-provider-portal-woad.vercel.app" ||
-    origin === "http://localhost:5173"
+    origin ===
+      "https://service-provider-portal-3jigmhz8m-rekha-sunils-projects.vercel.app" ||
+    origin === "http://localhost:5173" ||
+    origin === "http://localhost:5174"
   ) {
     res.header("Access-Control-Allow-Origin", origin);
     res.header("Vary", "Origin");
@@ -48,7 +52,10 @@ app.use(express.urlencoded({ extended: true }));
 // ===============================
 // Uploaded Files
 // ===============================
-app.use("/uploads", express.static("uploads"));
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "../uploads"))
+);
 
 // ===============================
 // Health Check

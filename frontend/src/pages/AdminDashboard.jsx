@@ -1,6 +1,10 @@
 import { useEffect, useState } from "react";
 import api from "../services/api";
 
+const API_BASE_URL = (
+  import.meta.env.VITE_API_URL || "http://localhost:5000/api"
+).replace(/\/api\/?$/, "");
+
 function AdminDashboard() {
   const [stats, setStats] = useState({
     total: 0,
@@ -157,6 +161,7 @@ function AdminDashboard() {
       <div className="dashboard-header">
         <div>
           <h1>Admin Dashboard</h1>
+
           <p>
             Manage service provider applications
           </p>
@@ -198,6 +203,7 @@ function AdminDashboard() {
         <div className="provider-list-header">
           <div>
             <h2>Service Providers</h2>
+
             <p>
               Review and manage provider applications
             </p>
@@ -303,6 +309,7 @@ function AdminDashboard() {
                       <td>
                         {provider.location?.city ||
                           "N/A"}
+
                         {provider.location?.state
                           ? `, ${provider.location.state}`
                           : ""}
@@ -376,12 +383,14 @@ function AdminDashboard() {
 
       {/* Provider Details */}
       {selectedProvider && (
+
         <div className="provider-details-card">
 
           <div className="details-header">
 
             <div>
               <h2>Provider Details</h2>
+
               <p>
                 Review complete provider information
               </p>
@@ -397,10 +406,37 @@ function AdminDashboard() {
 
           </div>
 
+          {/* Profile Photo */}
+          {selectedProvider.profilePhoto && (
+            <div
+              className="full-width"
+              style={{
+                marginBottom: "20px",
+              }}
+            >
+              <strong>Profile Photo</strong>
+
+              <div style={{ marginTop: "10px" }}>
+                <img
+                  src={`${API_BASE_URL}${selectedProvider.profilePhoto}`}
+                  alt="Provider"
+                  style={{
+                    width: "150px",
+                    height: "150px",
+                    objectFit: "cover",
+                    borderRadius: "10px",
+                    border: "1px solid #ddd",
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
           <div className="details-grid">
 
             <div>
               <strong>Name</strong>
+
               <p>
                 {selectedProvider.user?.name ||
                   "N/A"}
@@ -409,6 +445,7 @@ function AdminDashboard() {
 
             <div>
               <strong>Email</strong>
+
               <p>
                 {selectedProvider.user?.email ||
                   "N/A"}
@@ -417,6 +454,7 @@ function AdminDashboard() {
 
             <div>
               <strong>Phone</strong>
+
               <p>
                 {selectedProvider.phone ||
                   "N/A"}
@@ -425,6 +463,7 @@ function AdminDashboard() {
 
             <div>
               <strong>Experience</strong>
+
               <p>
                 {selectedProvider.experience || 0} years
               </p>
@@ -432,6 +471,7 @@ function AdminDashboard() {
 
             <div>
               <strong>Categories</strong>
+
               <p>
                 {selectedProvider.categories?.join(
                   ", "
@@ -441,6 +481,7 @@ function AdminDashboard() {
 
             <div>
               <strong>Skills</strong>
+
               <p>
                 {selectedProvider.skills?.join(
                   ", "
@@ -450,6 +491,7 @@ function AdminDashboard() {
 
             <div>
               <strong>City</strong>
+
               <p>
                 {selectedProvider.location?.city ||
                   "N/A"}
@@ -458,6 +500,7 @@ function AdminDashboard() {
 
             <div>
               <strong>State</strong>
+
               <p>
                 {selectedProvider.location?.state ||
                   "N/A"}
@@ -466,6 +509,7 @@ function AdminDashboard() {
 
             <div className="full-width">
               <strong>Address</strong>
+
               <p>
                 {selectedProvider.location?.address ||
                   "N/A"}
@@ -474,6 +518,7 @@ function AdminDashboard() {
 
             <div>
               <strong>Status</strong>
+
               <p>
                 <span
                   className={`status ${selectedProvider.applicationStatus}`}
@@ -483,20 +528,76 @@ function AdminDashboard() {
               </p>
             </div>
 
+            {/* Documents */}
+            {selectedProvider.documents?.length > 0 && (
+              <div className="full-width">
+
+                <strong>Documents</strong>
+
+                <div
+                  style={{
+                    marginTop: "10px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                  }}
+                >
+
+                  {selectedProvider.documents.map(
+                    (doc, index) => (
+
+                      <div
+                        key={index}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "10px",
+                        }}
+                      >
+
+                        <span>
+                          {doc.name || `Document ${index + 1}`}
+                        </span>
+
+                        <a
+                          href={`${API_BASE_URL}${doc.url}`}
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          View Document
+                        </a>
+
+                      </div>
+
+                    )
+                  )}
+
+                </div>
+
+              </div>
+            )}
+
             {selectedProvider.rejectionRemark && (
               <div className="full-width">
-                <strong>Rejection Remark</strong>
+
+                <strong>
+                  Rejection Remark
+                </strong>
+
                 <p>
                   {selectedProvider.rejectionRemark}
                 </p>
+
               </div>
             )}
 
           </div>
 
           {/* Details Actions */}
+
           {selectedProvider.applicationStatus !==
             "approved" && (
+
             <button
               onClick={() =>
                 approveProvider(
@@ -506,10 +607,12 @@ function AdminDashboard() {
             >
               Approve Provider
             </button>
+
           )}
 
           {selectedProvider.applicationStatus !==
             "rejected" && (
+
             <button
               onClick={() =>
                 rejectProvider(
@@ -519,9 +622,11 @@ function AdminDashboard() {
             >
               Reject Provider
             </button>
+
           )}
 
         </div>
+
       )}
 
     </div>
